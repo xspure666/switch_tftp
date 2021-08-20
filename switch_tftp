@@ -1,0 +1,32 @@
+import time
+import paramiko
+
+
+def switch(hostname, port, username, password):
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    command1 = "tftp 10.1.1.131 put startup.cfg startup.cfg_%s" % hostname
+    #  print(command1)
+    try:
+        ssh.connect(hostname=hostname, port=port, username=username, password=password, allow_agent=False,
+                    look_for_keys=False)
+        command = ssh.invoke_shell()
+    except Exception as e:
+        print("error:", e)
+    # 获取CPU
+    try:
+        command.send(command1 + '\n')
+        # 进入ssh远程后，需要等待3秒种用于等操作系统
+        time.sleep(3)
+        output = command.recv(1024).decode()
+        print("output:", output)
+        print("网络设备：%s 配置文件上传成功！" % hostname)
+    except Exception as e:
+        print("网络设备：%s 配置文件上传失败！" % hostname, e)
+
+
+# 可以通过多线程的方式同时执行
+switch('172.16.3.2', '22', 'admin', 'R25T0I74b6tHu2f6')
+switch('172.16.3.6', '22', 'admin', 'yuVq0otArUuSFfYj')
+switch('172.16.3.4', '22', 'admin', 'swHl1ITOU6QHufCa')
+switch('172.16.3.5', '22', 'admin', 'ICPNhODJMKCOhicN')
